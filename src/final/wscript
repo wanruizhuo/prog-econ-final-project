@@ -3,20 +3,16 @@
 
 def build(ctx):
 
-    for model in 'baseline', 'max_moves_2':
-
-        ctx(
-            features='run_py_script',
-            source='plot_locations.py',
+        
+    ctx(
+        features='run_py_script',
+        source='plot_variables.py',
             deps=[
-                ctx.path_to(ctx, 'OUT_ANALYSIS', 'schelling_{}.pickle'.format(model)),
-                ctx.path_to(ctx, 'IN_MODEL_SPECS', '{}.json'.format(model))
+                ctx.path_to(ctx, "OUT_DATA", "productivity_clean.csv"),
+                ctx.path_to(ctx, "IN_MODEL_CODE", "panel_model.py")
             ],
-            target=ctx.path_to(ctx, 'OUT_FIGURES', 'schelling_{}.png'.format(model)),
-            append=model,
-            name='plot_locations_{}'.format(model)
+            target=ctx.path_to(ctx, "OUT_FIGURES", "independent_dependent_variables.png")
         )
-
 
     # from src.final.project_dependency_graph import make_project_dependency_graph
 
