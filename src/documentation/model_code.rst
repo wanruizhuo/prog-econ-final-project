@@ -5,14 +5,13 @@ Model code
 **********
 
 
-The directory *src.model_code* contains source files that might differ by model and that are potentially used at various steps of the analysis.
-
-For example, you may have a class that is used both in the :ref:`analysis` and the :ref:`final` steps. Additionally, maybe you have different utility functions in the baseline version and for your robustness check. You can just inherit from the baseline class and override the utility function then.
+The directory *src.model_code* contains source file for panel data regression model which will be used in the step of analysis.
 
 
-The ``Agent`` class of the Schelling example
-============================================
+Panel_model
+===========
 
-.. automodule:: src.model_code.agent
+.. automodule:: src.model_code.panel_model
     :members:
 
+This function is used in both test_panel_model function and hausman function. Therefore, it can be stated as one of the model codes and should be included in this part.
