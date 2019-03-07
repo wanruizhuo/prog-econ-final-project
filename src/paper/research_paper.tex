@@ -63,7 +63,7 @@
 
 \begin{document}
 
-\title{prog-econ-final-project\thanks{Ruizhuo Wan, University of Bonn. Email: \href{mailto:wanruizhuo959595@gmail.com}{\nolinkurl{wanruizhuo959595 [at] gmail [dot] com}}.}}
+\title{Panel Data Regression Model Estimation and Inference\thanks{Ruizhuo Wan, University of Bonn. Email: \href{mailto:wanruizhuo959595@gmail.com}{\nolinkurl{wanruizhuo959595 [at] gmail [dot] com}}.}}
 
 \author{Ruizhuo Wan}
 
@@ -77,39 +77,306 @@
 
 
 \begin{abstract}
-	Some abstract here.
+	Since panel data is useful in many different aspects, it is important for us to study. The author is curious about how panel data works, how does fixed effects and random effects differ from each other and how to choose between those effects. Therefore, the aim of this project is to study some details of panel data. To make it clear, it focuses on one-way error component regression model in the research, studying fixed effects, random effects and Hausman test for a better and deeper understanding of those two effects. Meanwhile, after theoretical studies, the author is interested in reality so the project includes applications for fixed and random effects using productivity data and implemented a Hausman test applying python.
 \end{abstract}
 \clearpage
 
 \section{Introduction} % (fold)
 \label{sec:introduction}
 
-If you are using this template, please cite this item from the references: \citet{GaudeckerEconProjectTemplates}
-
-\citet{Schelling69} example in the code is taken from \citet{StachurskiSargent13}
-
-The decision rule of an agent is the following:
-\input{formulas/decision_rule}
-
-\begin{figure}
-    \caption{Segregation by cycle in the baseline \citet{Schelling69} model as in the \citet{StachurskiSargent13} example}
-    
-    \includegraphics[width=\textwidth]{../../out/figures/schelling_baseline}
-
-\end{figure}
+As the pool of cross-sectional units observed over several time periods, panel data is now increasingly used for many reasons. To explain this, it provides more informative data, controls individual heterogeneity and displays dynamics of change.
 
 
-\begin{figure}
-    \caption{Segregation by cycle in the baseline \citet{Schelling69} model, limiting the number of potential moves per period to two}
-    
-    \includegraphics[width=\textwidth]{../../out/figures/schelling_max_moves_2}
+For informative data, given a large number of observations (N*T, where N represents number of individuals and T represents time periods), panel data yields more degrees of freedom but less collinearity among explanatory variables. Therefore, it helps improving efficiency and reliability for estimation.
 
-\end{figure}
+
+From the aspect of individual heterogeneity, unobservable variables are correlated with explanatory variables. By implementing fixed effects and random effects in panel data, one can control the heterogeneity.
+
+
+For dynamics of change, panel data includes time-series dimension, which is helpful in studying the duration of economic states. For instance, if one needs to study the effects of policies like a minimum-wage law, one can use panel data to observe the changes in individual living standards, labor market and the whole economy.
+
 
 % section introduction (end)
 
+\section{General Model}
+\label{sec:General Model}
+
+\input{formulas/general_panel_model}
+
+Panel data can be seen as combination of cross-sectional and time-series data. There are two subscripts. The i-subscript displays the individual level or cross-sectional dimension and the t-subscript represents the time-series dimension. $N$ stands for the number of individuals (in general: observed entities) and $T$ for the number of different time waves. $\alpha$ is a scalar and $\beta$ is of dimension $K\times1$. $X_{it}$ is the $it$th observation of all explanatory variables. There are K explanatory variables. The most common way to understand $u_{it}$ is as a one-way error:
+
+\input{formulas/error_term}
+
+Note that $\mu_i$ has no $t$ subscript. $\mu_i$ is interpreted as the time-invariant individual-specific effect which we cannot observe. $v_{it}$ is the remaining error term. In matrix notation:
+
+\input{formulas/panel_model_1}
+
+$y$ is of dimension $NT\times1$ and $X$ is $NT\times K$. $\iota_{NT}$ is $NT\times1$ and contains only ones. $Z=[\iota_{NT},X]$ and $\delta'=(\alpha',\beta')$. The error term equation can be rewritten as:
+
+\input{formulas/u}
+
+$u$ is a vector of dimension $NT$. The observations in $u$ are stacked. $Z_{\mu}$ is a selector matrix of dimension $NT\times N$. It is calculated by $Z_{\mu}=I_N\otimes\iota_T$ and contains ones and zeros. It selects the individual-specific effects in $\mu$ by multiplying with $\mu$ to include them in the regression, which is necessary to estimate them. One constructs the projection matrix $P$ of $Z_{\mu}$ by $P=Z_{\mu}(Z_{\mu}'Z_{\mu})^{-1}Z_{\mu}'$. P is $NT\times NT$ and is able to average observations over time for each individual. This is since $Z_{\mu}$ contains $T$ dummies for each individual. $Q=I_{NT}-P$ is called residual-maker matrix and is used to get the deviations from individual means.
+
+% section General Model (end)
+
+\section{Fixed Effects Model}
+\label{sec:Fixed Effects Model}
+
+\begin{itemize}
+    \item $\mu_i$ are unknown fixed parameters for each individual,
+    \item $v_{it}$ are $IID(0, \sigma_v^2)$ with finite $\sigma_v^2$,
+    \item $X_{it}$ are independent of $v_{it}$ $\forall \; i, t$.
+\end{itemize}
+
+\input{formulas/panel_model_1}
+
+In the FE-model $\mu_i$ can be correlated with $X_{it}$, thus $\mathop{\mathbb{E}}[X_{it}\mu_i]\neq0$. For the reason of all $\mu_i$ being unobservable it cannot be controlled for it directly. The estimation of $\alpha$, $\beta$ and $\mu$ is possible but not without consequences. All individual dummies need to be included in the regression to estimate the $\mu_i$'s. The matrix that needs to be inverted by OLS is $N\times K$ and is large, if $N$ is large. The resulting estimator for $\beta$ from OLS is the Least-Squares-Dummy-Variables(LSDV)-estimator.
+To circumvent the estimation of $\mu$ one uses the within-approach. Applying the within-transformation removes $\mu$. The matrix $Q$ demeans the data by premultiplying the whole model. $\mu$ is eliminated since all $\mu_i$'s are time-constant. 
+Premultiplying the whole model with $Q$ yields:
+
+\input{formulas/Qy}
+
+which is a result of $QZ_{\mu}=(I_{NT}-P)Z_{\mu}=0$ since $PZ_{\mu}=Z_{\mu}$
+and $Q\iota_{NT}=(I_{NT}-P)\iota_{NT}=0$ since $P\iota_{NT}=\iota_{NT}$
+
+\subsection{Estimation}
+
+Applying OLS leads to the within-estimator for $\beta$. On regresses $\Tilde{y}=Qy$ on $\Tilde{X}=QX$. Since $Q=I_{NT}-P$ the elements in $\Tilde{y}$ have the structure $[y_{it}-\Bar{y}_i]$. Analogously the elements in $\Tilde{X}$ are $[X_{it,k}-\Bar{X}_{i,k}]$ for the $k$th regressor. The only variation left in the data is then the variation from $i$'s mean for each entitiy. This variation is called within variation. $i$'s observations are then centered around zero. Any between variation is removed.
+
+OLS minimizes the sum of squared residuals with respect to $\widehat{\beta}$:
+\begin{eqnarray}
+    \min_{\widehat{\beta}}\;e'e&=&(Qy-QX\widehat{\beta})'(Qy-QX\widehat{\beta})\nonumber\\&=&y'Qy-\widehat{\beta}QX'y-y'QX\widehat{\beta}+\widehat{\beta}X'QX\widehat{\beta}\nonumber\\&=&y'Qy-2\widehat{\beta}X'Qy+\widehat{\beta}'X'QX\widehat{\beta}
+\end{eqnarray}
+Derivation leads to FOC:
+\begin{equation}
+    \frac{\partial e'e}{\partial \widehat{\beta}}=-2X'Qy+2X'QX\widehat{\beta}\overset{!}{=}0
+\end{equation}
+The OLS estimator is:
+\begin{equation}
+    \widehat{\beta}=(X'QX)^{-1}X'Qy
+\end{equation}
+with $var(\widehat{\beta})=\sigma_v^2(X'QX)^{-1}$.
+The results for $\widehat{\beta}$ from LSDV- and within-estimation are numerically identical. Note that the OLS estimation of the within-transformed model only requires the inversion of the $K\times K$ matrix $X'QX$ instead of a $(N+K)\times(N+K)$ matrix required for estimating $\mu$ when calculating the LSDV-estimator.
+
+% subsection Estimation (end)
+
+\subsection{Remarks}
+It is hardly possible to estimate $\alpha$ and $\mu_i$ separately. Hence, the restriction to separate the effects is $\sum_{i=1}^N \mu_i=0$
+It helps avoid dummy variable trap. To distinguish between $\alpha$ and $\mu_i$ consider the following regression:
+\input{formulas/yit}
+
+The average over time is:
+\input{formulas/ybari}
+
+By substracting them one can get:
+\begin{equation}
+    y_{it}-\bar{y}_{i.}=\beta (x_{it}-\bar{x}_{i.})+(v_{it}-\bar{v}_{i.})
+\end{equation}
+
+Since $\sum_{i=1}^N \mu_i=0$ the average over all observations is:
+
+\input{formulas/ybar}
+
+After calculating $\beta$, the estimate for $\alpha$ can be obtained and also the estimate for $\mu_i$.
+
+% subsection Remarks (end)
+
+\subsection{Statistic Inference}
+The FE estimator is already unbiased in small samples under the following assumptions:
+\begin{itemize}
+    \item \textit{(A1) Linearity}: The model is linear in parameters $\alpha$, $\beta$, $\mu$ and error $v$
+    \item \textit{(A2) Independence}: $\{ X_i, y_i \}_{i=1}^N \; i.i.d.$ (Random Sampling in cross-section)
+    \item \textit{(A3) Strict Exogeneity}: $\mathop{\mathbb{E}}[u_{it}|X_i, \mu_i]=0$
+    \item \textit{(A4) Identifiability}: $rank(\Tilde{X})=K<NT$ and $\mathop{\mathbb{E}}[\Tilde{x}_i'\Tilde{x}_i]$ is positive definite and finite\\
+    The explanatory variables (time varying) have non-zero within variation since they are not perfectly collinear. For a given individual the variation over time is non-zero. There are not too many extreme values in the explanatory variables.
+\end{itemize}
+If the errors are homoskedastic with no serial correlation, the variance of the FE estimator $\hat{\beta}$ can be estimated.
+\begin{itemize}
+    \item \textit{(A5) Homeskedasticity, no serial correlation}: $V[u_i|X_i, \mu_i]=\sigma_u^2I,\,\sigma_u^2>0$ and finite
+\end{itemize}
+\begin{equation}
+    \widehat{Var}(\widehat{\beta}|X)=\widehat{\sigma}_u^2(\Tilde{X}'\Tilde{X})^{-1}
+\end{equation}
+with $\widehat{\sigma}_u^2=\frac{\Tilde{u}'\Tilde{u}}{(T-1)N-K}$ where $\Tilde{u}_{it}=\Tilde{y}_{it}-\Tilde{x}_{it}'\widehat{\beta}$ and $\Tilde{u}$ contains all $\Tilde{u}_{it}$ as stacked observations.
+
+The FE estimator is consistent when $T\xrightarrow{}\infty$. This condition is hardly ever the case in most panel studies. In most cases T is fixed and small and N is large. But then still for $N\xrightarrow{}\infty$ the FE estimator of $\beta$ is consistent whereas the FE estimators of the individual fixed effects ($\alpha+\mu_i$) are not. The latter is since the number of parameters to be estimated increases as N increases. Consistency for T fixed and $N\xrightarrow{}\infty$ builds on $\textit{(A1)-(A5)}$.
+
+When the underlying model is fixed effects and one applies OLS to it, the OLS estimates are biased and inconsistent. This comes from an omitted variable bias since OLS neglects the information from individual dummies.
+
+% subsection Statistical Inference (end)
+% section Fixed Effects Model (end)
+
+\section{Random Effects Model}
+\subsection{Assumptions}
+    When comparing to the fixed effects model, random effects model avoids losing degrees of freedom since $\mu_i$ is assumed to be random in the equation ${u_{it} = \mu_i + \nu_{it}}$. Under random effects model, both $\mu_i$ and $\nu_{it}$ are independent identically distributed with zero means. In the meanwhile, the variance of $\mu_i$ is $\sigma_\mu ^2$ and the variance of $\nu_{it}$ is $\sigma_\nu ^2$. Another assumption for the model is that regressors $X_{it}$ are all independent of $\mu_i$ and $\nu_{it}$ for all i and t.
+
+% subsection Assumptions (end)
+
+\subsection{Estimation}
+Generally one possible estimation method is Generalized Least Squares (GLS). When applying this method, it is significant to obtain estimators for variance components first. To estimate variance components, variance-covariance matrix needs to be considered as well.
+
+Written as $\Omega$, one can calculate it that 
+    \begin{equation}
+    \Omega = E(uu') = Z_\mu E(\mu \mu')Z_\mu' + E(\nu\nu')
+    \end{equation}
+Through relative transformations, one can also attain $\Omega$ in the form of Kronecker production
+$\Omega = \sigma_\mu^2(I_N \otimes J_T) + \sigma_\nu^2(I_N \otimes I_T)$. To simplify the function, in replacement, $J_T$ is shown as $T\bar J_T$ and $I_T$ as $E_T + \bar J_T$, where $\bar J_T$ is the mean of $J_T$. Thus, the matrix becomes $\Omega = (T\sigma_\mu^2 + \sigma_\nu^2)(I_N \otimes \bar J_T) + \sigma_\nu^2(I_N \otimes E_T) = \sigma_1^2P + \sigma_\mu^2Q$, where $\sigma_1^2 = T\sigma_\mu^2 + \sigma_\nu^2$. In the new equation, one can easily compute that 
+    \begin{equation}
+    \Omega^{-1} = \frac{1}{\sigma_1^2} P + \frac{1}{\sigma_\nu^2} Q
+    \end{equation} 
+which is the inverse of the variance-covariance matrix.
+
+After these essential steps one can make estimations for variance components including $\sigma_1^2$, $\sigma_\mu^2$ and $\sigma_\nu^2$. One possible and common way is to construct two regressions called Within regression and Between regression. By construction, the estimators of variance components can be computed.
+
+Within regression is displayed as $y_{it} - \bar y_{i.} = \beta(x_{it} - \bar x_{i.}) + (\nu_{it} - \bar\nu_{i.})$ in the previous equation of fixed effects. By this regression, one is able to estimate $\sigma_\nu^2$ as 
+    \begin{equation}
+    {\widehat{\widehat{\sigma}}}_\nu^2 = [y'Qy - y'QX(X'QX)^{-1}X'Qy]/[N(T - 1) - K]
+    \end{equation}
+
+When taking an average of time element for the original random effects model, Between regression is displayed as 
+    \begin{equation}
+    \bar y_{i.} = \alpha + \bar X'_{i.}\beta + \bar \mu_{i.} \ \ \ \ i = 1, \ldots, N
+    \end{equation}
+with N observations. Therefore, one needs to modify the Between regression by multiplying $\sqrt T$ to make the number of observations consistent to the OLS model's. In this case, the regression becomes 
+    \begin{equation}
+    \sqrt T \bar y_{i.} = \alpha \sqrt T + \sqrt T \bar X'_{i.} \beta + \sqrt T \bar u_{i.}
+    \end{equation}
+In the new regression which is called cross-section regression, it is verifiable that the variance of the new error term $\sqrt T \bar u_{i.}$ is equal to $\sigma_1$. Thus, the estimator of $\sigma_1$ is written as
+    \begin{equation}
+    {\widehat{\widehat{\sigma}}}_1^2 = (y'Py - y'PZ(Z'PZ)^{-1}Z'Py)/(N - K -1)
+    \end{equation}
+in the modified regression.
+
+When it comes to the GLS estimator of $\beta$,  which comes from stacking
+    \begin{equation}
+    \left(
+    \begin{matrix}
+    Qy \\ Py
+    \end{matrix}
+    \right)
+    =
+    \left(
+    \begin{matrix}
+    QZ \\ PZ
+    \end{matrix}
+    \right)
+    \delta
+    +
+    \left(
+    \begin{matrix}
+    Qu \\ Pu
+    \end{matrix}
+    \right)
+    \end{equation}
+and getting rid of constant by replacing P with $P-J_{NT}$, one can attain the following equation
+    \begin{equation}
+    \widehat\beta_{GLS} = [(X'QX/\sigma_\nu^2) + X'(P - \bar J_{NT})X/\sigma_1^2]^{-1}[(X'Qy/\sigma_\nu^2) + X'(P - \bar J_{NT})y/\sigma_1^2]
+    \end{equation}
+In the meanwhile, one can use $W_{XX}$, $\phi^2$, $B_{XX}$, $W_{Xy}$ and $B_{Xy}$ to shorten the estimator so that it appears to be
+    \begin{equation}
+    \widehat\beta_{GLS} = [W_{XX} + \phi^2B_{XX}]^{-1}[W_{Xy} + \phi^2B_{Xy}]
+    \end{equation}
+where $W_{XX} = X'QX$, $\phi^2 = \sigma_\nu^2 / \sigma_1^2$, $B_{XX} = X'(P - \bar J_{NT})X$, $W_{Xy} = X'Qy$ and $B_{Xy} = X'(P - \bar J_{NT})y$. If one compares this result with the Within and Between estimators, one will recognize that it is a combination of these estimators with different weights. In explanation, $\widehat\beta_{GLS}$ can be written in this form 
+    \begin{equation}    
+    \widehat\beta_{GLS} = W_1\widetilde\beta_{Within} + W_2\widehat\beta_{Between}
+    \end{equation}
+with $W_1 = [W_{XX} + \phi^2B_{XX}]^{-1}$ and $W_2 = [W_{XX} + \phi^2B_{XX}]^{-1}(\phi^2B_{XX}) = I - W_1$ and $\hat \beta_{Between} = [X'(P - \bar J_{NT})X]^{-1}X'(P - \bar J_{NT})y$, where $\bar J_{NT} = \iota_{NT} \iota_{NT}' / NT$ and $\iota_{NT}$ is a matrix of ones with dimension NT.
+% subsection Estimation (end)
+
+\subsection{Statistical Inference}
+For random effects model, the estimator is unbiased under the assumptions of:
+\begin{itemize}
+    \item \textit {(A1) - (A4)}: For random effects, these assumptions from fixed effects are still applicable to make the estimator unbiased.
+    \item \textit{(A6) Identically Independently Distributed Error Components (as states in the part of assumptions)}: This part guarantees that for random effects, there is no endogeneity between independent variable ($X_{it}$) and the error term ($u_{it} = \mu_i + \nu_{it}$).
+\end{itemize}
+
+Under this model, there exists homoskedaticity and serial correlation as well:
+\begin{itemize}
+    \item \textit {(A7) Homoskedasticity and Serial Correlation}:
+    \begin{equation}
+    var(u_{it}) = \sigma_\mu^2 + \sigma_\nu^2 \text{, for any i and t}
+    \end{equation}
+
+    For homosekedasticity, it comes from the properties of variance-covariance matrix $\Omega$ in estimation part. For serial correlation, since one obtains $\Omega$ from Kronecker product, it is a block-diagonal matrix. Hence, the variance-covariance matrix is equalcorrelated, showing serial correlation across time period for error terms of a particular individual.
+\end{itemize}
+
+When comparing different estimators, the random effects estimator reveals some relationships under specific circumstances.
+For instance, 
+\begin{itemize}
+    \item if $\sigma_\mu^2 = 0$, then $\phi^2 = 1$ so that the random effects estimator ($\widehat \beta_{GLS}$) goes to OLS estimator ($\widehat \beta_{OLS}$)
+    \item if the number of time periods converges to infinite, then $\phi^2$ will converge to zero, which leads $\widehat \beta_{GLS}$ tending to $\widetilde \beta_{Within}$, the fixed effect estimator
+    \item if $W_{XX}$ is pretty large when comparing to $B_{XX}$, then $\widehat \beta_{GLS}$ will also goes to $\widetilde \beta_{Within}$
+    \item if on the contratory, $B_{XX}$ is pretty large comparing to $W_{XX}$, $\widehat \beta_{GLS}$ tends to $\widehat \beta_{Between}$
+\end{itemize}
+
+% subsection Statistical Inference (end)
+% section Random Effects Model (end)
+
+\section{Hausman Specification Test}
+In practice it is hard to assess whether there is a correlation between the independent variables and the error term, when the error term contains the individual effects. But since this is the crucial assumption to decide between the common panel data estimators, it is important to use a systematic approach to test for this endogeneity. Suppose we want to explain the profits of a firm. They could depend on the firm's stock value. The ability of the CEO is then the individual heterogeneity of the firm, which may be correlated with the stock value since the CEO represents the firm in publicity. If $E(u_{it}/X_{it}) \neq 0$ the GLS estimator is biased and inconsistent. By considering both estimators strengths and shortcomings, one needs to decide which model to choose. Hausman's specification test is vital in this step for testing how the error term is related to the independent variables.
+
+The null hypothesis states that GLS estimator $\widehat\beta_{GLS}$ is consistent when there is no correlation between $u_{it}$ and $X_{it}$. Formally, it is written as$$\emph{$H_0$}: E(u_{it}/X_{it}) = 0$$In this case, if $H_0$ cannot be rejected after taking the test, there is evidence that the GLS estimator is consistent as well as BLUE. That is, one can apply the random effect model to do the analysis.
+
+One starts with the test statistic as 
+$\widehat q_1 = \widehat \beta_{GLS} - \widetilde \beta_{Within}$. If $H_0$ cannot be rejected, plim $\widehat q_1 = 0$ and $cov(\widehat q_1, \widehat\beta_{GLS}) = 0$. After reaching the test statistic, one of the properties for $\widehat q_1$ is $E(\widehat q_1) = 0$ (from $\widehat\beta_{GLS} - \beta = (X'\Omega^{-1}X)^{-1}X'\Omega^{-1}u$ and $\widetilde\beta_{Within} - \beta = (X'QX)^{-1}X'Qu$). Another property for $\widehat q_1$ is that the covariance between it and $\widehat\beta_{GLS}$ is zero. Formally,
+    \begin{equation} \begin{split}
+    cov(\widehat\beta_{GLS}, \widehat q_1)
+    &= var(\widehat\beta_{GLS}) - cov(\widehat\beta_{GLS}, \widetilde\beta_{Within}) \\ &= (X'\Omega^{-1}X)^{-1} - (X'\Omega^{-1}X)^{-1}X\Omega^{-1}E(uu')QX(X'QX)^{-1} \\ &= (X'\Omega^{-1}X)^{-1} - (X'\Omega^{-1}X)^{-1} = 0
+    \end{split}\end{equation}
+    Since $\widetilde \beta_{Within} = \widehat \beta_{GLS} - \widehat q_1$ and $cov(\widehat \beta_{GLS}, \widehat q_1) = 0$, one can get
+    \begin{equation}
+    var(\widetilde \beta_{Within}) = var(\widehat \beta_{GLS}) + var(\widehat q_1)
+    \end{equation}
+    Therefore,
+    \begin{equation}
+    var(\widehat q_1) = var(\widetilde \beta_{Within}) - var(\widehat \beta_{GLS}) = \sigma_{\nu}^2(X'QX)^{-1} - (X'\Omega^{-1}X)^{-1}
+    \end{equation}
+    Finally, one can get the Hausman test statistic
+    \begin{equation}
+    m_1 = \widehat q_1'[var(\widehat q_1)]^{-1}\widehat q_1
+    \end{equation}
+Under $H_0$ it is asymptotically distributed as $\chi_K^2$, where $K$ denotes the dimension of slope vector $\beta$. Intuitively, if the difference between the GLS (RE) estimate and the within (FE) estimate is large enough there is evidence for the presence of a correlation between the explanatory variables and the disturbance term.
+% section Hausman Specification Test (end)
+
+\section{Applications}
+\subsection{Computational Resources}
+Using python, I replicated an application example from Baltagi, focusing on productivity data, for checking the relationship between public capital, private capital, labor input, unemployment and gross state product. It contains data from 48 observations over 17 years, that is, the total number of observations is 816.
+
+This dataset is a balanced panel, which means that there is information about all individuals (here: 48 observations) at every point in time that is observed. Therefore, I took it as a good example to illustrate panel data estimation.
+
+My goal is to implement the fixed effects and the random effects estimator and to do Hausman test to see whether I should reject random effects or not and compare the results with true values.
+% subsection Computational Resources (end)
 
 
+\subsection{Model Introduction}
+   \begin{equation*} \label{eq:grunfeld}
+   lnY=\alpha+\beta_1 ln K_1+\beta_2 lnK_2 + \beta_3 lnL + \beta_4 Unemp + u
+   \end{equation*}
+Y represents the gross state product, $K_1$ denotes the public capital including highways and streets, water and sewer facilities and other public buildings and structures. $K_2$ is the private capital stock as shown in original data. L is the labor input shown as EMP in original dataset. Unemp is the unemployment rate. u represents a common error term. The figure in appendix shows the relationship between independent variables ($ln K_1$, $ln K_2$, lnL, Unemp) and dependent variable (lnY). A unique color is assigned to each independent variable.
+% subsection Model Introduction (end)
+
+\subsection{Implementation on Fixed Effects Model}
+After setting $N=48$, $T=17$ and $K=4$. To stick to previous notation I extract gross state product into a vector y and the independent variables into a matrix $X$. 
+Based on $N$ and $T$ I constructed P and Q in the model code and demeaned y and X. In addition, I set up a function called fixed\_effects\_model, which leads to the within estimator $\widehat{\beta_{within}} = (\widetilde X'\widetilde X)^{-1}\widetilde X' \widetilde y$ and obtain the estimator which is a vector of [-0.026, 0.292, 0.768, -0.005], being equal to the true value found by Baltagi. This is the estimator of the FE model. Moreover, I calculated the variance of beta within and got the same results as the true value, which is a 4x4 matrix as test\_panel\_model expected.
+
+% subsection Implementation on Fixed Effects Model (end)
+
+\subsection{Implementation on Random Effects Model}
+I applied X, y, Q and P from the previous section. The variance-covariance components and the components of GLS estimator can be implemented here. I constructed ${\widehat{\widehat{\sigma}}}_1^2$, ${\widehat{\widehat{\sigma}}}_v^2$ and $\widehat{\phi}^2$ as the variance-covariance components from panel\_model in model\_code, and $\bar J_{NT}$, $B_{XX}$, $B_{Xy}$, $W_{XX}$, $W_{Xy}$ as the components of GLS estimator. Out of those components I obtained $\widehat{\beta}_{GLS}$, which is the same as the true value [0.004, 0.311, 0.730, -0.006], according to the test. And the same variance value as the true value states in test.
+
+% subsection Implementation on Random Effects Model (end)
+\subsection{Hausman Specification Test}
+Using the coefficients I estimated before, I attained the $\widehat q_1$, which is equal to the subtract of $\widehat \beta_{GLS}$ and $\widehat \beta_{Within}$. Then the statistic $m_1$ can be calculated. I set up a critical value at 2.5\%, which is 11.143 for Hausman test in analysis part and got a result that null hypothesis should not be rejected. It shows that GLS estimator is consistent here and hence, random effects model should be preferred to when comparing with fixed effects model.
+
+%subsection Hausman Specification Test (end)
+% section Applications (end)
+
+\section{Conclusion}
+In this project, I worked on panel data model for fixed effects and random effects. After general setup, I explained fixed effects and random effects and their estimators. I also added explanations to Hausman test theoretically.
+
+For application, I used dataset from Baltagi on productivity data to find estimators for fixed and random effects and to do Hausman test. In results, from Hausman test one should apply random effects model at 2.5\% level.
+
+In the future, I plan to work on two-way error component regression model since I only focused on one-way here. For two-way error component regression model, $u_{it}$ includes one more element $\lambda_t$ as time-specific but individual-invariant. In this case, it is able to see the relationship between time and the dependent variable.
 
 \setstretch{1}
 \printbibliography
@@ -117,8 +384,30 @@ The decision rule of an agent is the following:
 
 
 
-
+\section{Appendix}
+\label{sec:Appendix}
 % \appendix
+\begin{figure}
+    \caption{Independent Variables and Dependent Variable}
+    
+    \includegraphics[width=\textwidth]{../../out/figures/independent_dependent_variables.png}
+
+\end{figure}
+
+\begin{table}[htbp]\centering
+\caption{Result of Estimators (Implementation)}
+\begin{tabular}{c c c}
+\toprule
+\textbf{Variable}  & \textbf{Within}  & \textbf{GLS}\\ 
+\midrule
+$lnK_1$ &   -0.026*** &        0.004***      \\
+$lnK_2$ &   0.292***   &       0.311***       \\
+lnL   &   0.768*** &         0.730***        \\
+Unemp &   -0.005*** &        -0.006***        \\        
+\end{tabular}
+\end{table}
+
+% section Appendix (end)
 
 % The chngctr package is needed for the following lines.
 % \counterwithin{table}{section}

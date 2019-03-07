@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{prog-econ-final-project}
+\title{Panel Data Regression Model Estimation and Inference}
 
 \author[Ruizhuo Wan]
 {
@@ -52,14 +52,153 @@
 \end{frame}
 
 
-\begin{frame}[t]
-    \frametitle{heading here}
-    \begin{itemize}
-        \item<+-> Please cite this template as: \citet{GaudeckerEconProjectTemplates}
-        \item<+-> \citet{Schelling69} example in the code is taken from \citet{StachurskiSargent13}.
-        \item<+-> The decision rule of an agent is \input{formulas/decision_rule}
-    \end{itemize}
-    \note{~}
+\begin{frame}
+Introduction
+
+Panel data can be seen as the pool of cross-sectional units observed over several time periods. It provides more informative data, controls individual heterogeneity and displays dynamics of change.
+\end{frame}
+
+\begin{frame}
+General Model
+\input{formulas/general_panel_model}
+\input{formulas/error_term}
+\input{formulas/panel_model_1}
+\input{formulas/u}
+\end{frame}
+
+\begin{frame}
+Fixed Effects Model
+\begin{itemize}
+    \item $\mu_i$ are unknown fixed parameters for each individual,
+    \item $v_{it}$ are $IID(0, \sigma_v^2)$ with finite $\sigma_v^2$,
+    \item $X_{it}$ are independent of $v_{it}$ $\forall \; i, t$.
+\end{itemize}
+After premuliplication,
+\input{formulas/Qy}
+\end{frame}
+
+\begin{frame}
+Estimation
+
+Applying OLS leads to the within-estimator for $\beta$.
+OLS minimizes the sum of squared residuals with respect to $\widehat{\beta}$:
+\begin{eqnarray}
+    \min_{\widehat{\beta}}\;e'e&=&(Qy-QX\widehat{\beta})'(Qy-QX\widehat{\beta})\nonumber\\&=&y'Qy-\widehat{\beta}QX'y-y'QX\widehat{\beta}+\widehat{\beta}X'QX\widehat{\beta}\nonumber\\&=&y'Qy-2\widehat{\beta}X'Qy+\widehat{\beta}'X'QX\widehat{\beta}
+\end{eqnarray}
+Derivation leads to FOC:
+\begin{equation}
+    \frac{\partial e'e}{\partial \widehat{\beta}}=-2X'Qy+2X'QX\widehat{\beta}\overset{!}{=}0
+\end{equation}
+The OLS estimator is:
+\begin{equation}
+    \widehat{\beta}=(X'QX)^{-1}X'Qy
+\end{equation}
+with $var(\widehat{\beta})=\sigma_v^2(X'QX)^{-1}$.
+\end{frame}
+
+\begin{frame}
+Statistical Inference
+
+\begin{itemize}
+    \item \textit{(A1) Linearity}: The model is linear in parameters $\alpha$, $\beta$, $\mu$ and error $v$
+    \item \textit{(A2) Independence}: $\{ X_i, y_i \}_{i=1}^N \; i.i.d.$ (Random Sampling in cross-section)
+    \item \textit{(A3) Strict Exogeneity}: $\mathop{\mathbb{E}}[u_{it}|X_i, \mu_i]=0$
+    \item \textit{(A4) Identifiability}: $rank(\Tilde{X})=K<NT$ and $\mathop{\mathbb{E}}[\Tilde{x}_i'\Tilde{x}_i]$ is positive definite and finite
+\end{itemize}
+If the errors are homoskedastic with no serial correlation, the variance of the FE estimator $\hat{\beta}$ can be estimated.
+\begin{itemize}
+    \item \textit{(A5) Homeskedasticity, no serial correlation}: $V[u_i|X_i, \mu_i]=\sigma_u^2I,\,\sigma_u^2>0$ and finite
+\end{itemize}
+\begin{equation}
+    \widehat{Var}(\widehat{\beta}|X)=\widehat{\sigma}_u^2(\Tilde{X}'\Tilde{X})^{-1}
+\end{equation}
+\end{frame}
+
+\begin{frame}
+Random Effects Model
+
+\begin{itemize}
+    \item $\mu_i$ is assumed to be random
+    \item $\mu_i$ and $\nu_{it}$ are independent identically distributed with zero means. In the meanwhile, the variance of $\mu_i$ is $\sigma_\mu ^2$ and the variance of $\nu_{it}$ is $\sigma_\nu ^2$
+    \item $X_{it}$ are all independent of $\mu_i$ and $\nu_{it}$ for all i and t
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+Estimation
+   Variance-Covariance Matrix
+
+    \begin{equation}
+    \begin{split}
+    \Omega &= E(uu') = Z_\mu E(\mu \mu')Z_\mu' + E(\nu\nu')\\
+    &= \sigma_\mu^2(I_N \otimes J_T) + \sigma_\nu^2(I_N \otimes I_T)\\
+    &= \sigma_1^2P + \sigma_\mu^2Q
+    \end{split}
+    \end{equation}
+    \begin{equation}
+    \sigma_1^2 = T\sigma_\mu^2 + \sigma_\nu^2
+    \end{equation}
+    \begin{equation}
+    \Omega^{-1} = \frac{1}{\sigma_1^2} P + \frac{1}{\sigma_\nu^2} Q
+    \end{equation}
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+    \item Within Regression
+        \begin{equation}
+        y_{it} - \bar y_{i.} = \beta(x_{it} - \bar x_{i.}) + (\nu_{it} - \bar\nu_{i.})
+        \end{equation}
+        \begin{equation}
+        {\widehat{\widehat{\sigma}}}_\nu^2 = [y'Qy - y'QX(X'QX)^{-1}X'Qy]/[N(T - 1) - K]
+        \end{equation}
+    \item Between Regression
+        \begin{equation}
+        \bar y_{i.} = \alpha + \bar X'_{i.}\beta + \bar \mu_{i.} \ \ \ \ i = 1, \ldots, N
+        \end{equation}
+        \begin{equation}
+        \sqrt T \bar y_{i.} = \alpha \sqrt T + \sqrt T \bar X'_{i.} \beta + \sqrt T \bar u_{i.}
+        \end{equation}
+        \begin{equation}
+        {\widehat{\widehat{\sigma}}}_1^2 = (y'Py - y'PZ(Z'PZ)^{-1}Z'Py)/(N - K -1)
+        \end{equation}
+    \item GLS Estimator
+        \begin{equation}
+        \widehat\beta_{GLS} = [(X'QX/\sigma_\nu^2) + X'(P - \bar J_{NT})X/\sigma_1^2]^{-1}[(X'Qy/\sigma_\nu^2) + X'(P - \bar J_{NT})y/\sigma_1^2]
+        \end{equation}
+        \begin{equation}
+        \widehat\beta_{GLS} = [W_{XX} + \phi^2B_{XX}]^{-1}[W_{Xy} + \phi^2B_{Xy}]
+        \end{equation}
+    where $W_{XX} = X'QX$, $\phi^2 = \sigma_\nu^2 / \sigma_1^2$, $B_{XX} = X'(P - \bar J_{NT})X$, $W_{Xy} = X'Qy$ and $B_{Xy} = X'(P - \bar J_{NT})y$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+Statistical Inference
+Estimator is unbiased under the assumptions of:
+\begin{itemize}
+    \item \textit {(A1) - (A4)}
+    \item \textit{(A6) Identically Independently Distributed Error Components (as states in the part of assumptions)}
+    \item if $\sigma_\mu^2 = 0$, then $\phi^2 = 1$ so that the random effects estimator ($\widehat \beta_{GLS}$) goes to OLS estimator ($\widehat \beta_{OLS}$)
+    \item if the number of time periods converges to infinite, then $\phi^2$ will converge to zero, which leads $\widehat \beta_{GLS}$ tending to $\widetilde \beta_{Within}$, the fixed effect estimator
+    \item if $W_{XX}$ is pretty large when comparing to $B_{XX}$, then $\widehat \beta_{GLS}$ will also goes to $\widetilde \beta_{Within}$
+    \item if on the contratory, $B_{XX}$ is pretty large comparing to $W_{XX}$, $\widehat \beta_{GLS}$ tends to $\widehat \beta_{Between}$
+    \item \textit {(A7) Homoskedasticity and Serial Correlation}:
+    \begin{equation}
+    var(u_{it}) = \sigma_\mu^2 + \sigma_\nu^2 \text{, for any i and t}
+    \end{equation}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+Hausman Specification Test
+Test Statistics
+    \begin{equation}
+    \widehat q_1 = \widehat \beta_{GLS} - \widetilde \beta_{Within}
+    \end{equation}
+    \begin{equation}
+    m_1 = \widehat q_1'[var(\widehat q_1)]^{-1}\widehat q_1
+    \end{equation}
 \end{frame}
 
 
